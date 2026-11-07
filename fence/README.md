@@ -195,8 +195,10 @@ These captures show the actual Streamlit app using synthetic QA data in an isola
 
 Team members must download [Band AI desktop](https://band.ai/).
 
-- Public repository URL — pending team input.
-- Team member names — pending team input.
+- Public repository URL — https://github.com/Shaad747/fence-hackathon
+- Team members:
+  - Mir Shaad Ali
+  - Punith Dewangan
 
 ## Outcome persistence (Stage 6A)
 
