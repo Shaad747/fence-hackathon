@@ -1,0 +1,226 @@
+[
+  {
+    "id": "kp-2022-assisted-onboarding",
+    "title": "Assisted onboarding for neighbourhood merchants",
+    "date": "2022-03-18",
+    "owner": "Ananya Rao",
+    "team": "Merchant growth",
+    "proposal": "At Kaveri Pay, pilot a Kannada and Hindi assisted-onboarding flow for 600 neighbourhood merchants before changing the self-service UPI signup experience.",
+    "outcome": "success",
+    "reasons": [
+      "The pilot addressed document-upload failures observed in support tickets.",
+      "Agents could resume an incomplete application without asking merchants to restart.",
+      "Expansion required activation above 65% and no increase in KYC rejection rate for four consecutive weeks."
+    ],
+    "impact": "Thirty-day activation rose from 48% to 69% across 600 pilot merchants; KYC rejection stayed at 4%.",
+    "tags": ["illustrative", "onboarding", "merchant-growth", "phased-rollout", "localisation"]
+  },
+  {
+    "id": "kp-2022-support-chatbot",
+    "title": "Support chatbot with a human escalation queue",
+    "date": "2022-07-22",
+    "owner": "Farah Khan",
+    "team": "Customer support",
+    "proposal": "Use a chatbot for merchant payment-status and refund questions, with human escalation for unresolved cases.",
+    "outcome": "partial",
+    "reasons": [
+      "The bot answered routine payment-status questions consistently.",
+      "Refund exceptions needed account context that the bot could not access.",
+      "Escalations entered the general queue without carrying the conversation transcript, forcing merchants to repeat their issue."
+    ],
+    "impact": "Routine ticket volume fell 24%, but refund-case resolution rose from 9 to 14 hours during the eight-week pilot.",
+    "tags": ["illustrative", "support-capacity", "automation", "refunds", "handoffs"]
+  },
+  {
+    "id": "kp-2022-cloud-commitment",
+    "title": "Annual cloud commitment ahead of measured demand",
+    "date": "2022-11-11",
+    "owner": "Rohan Mehta",
+    "team": "Platform engineering",
+    "proposal": "Sign a twelve-month cloud compute commitment based on the sales team's projected doubling of merchant transaction traffic.",
+    "outcome": "failed",
+    "reasons": [
+      "The demand forecast counted signed partners before their technical integrations were complete.",
+      "The commitment could not be transferred to the database capacity that became the actual bottleneck.",
+      "Finance had no monthly utilisation checkpoint before the purchase."
+    ],
+    "impact": "Committed compute averaged 57% utilisation; ₹16 lakh of prepaid capacity went unused over twelve months.",
+    "tags": ["illustrative", "vendor-contracts", "capacity-planning", "forecasting", "cost-control"]
+  },
+  {
+    "id": "kp-2023-sms-switch",
+    "title": "SMS provider switch",
+    "date": "2023-04-17",
+    "owner": "Vikram Iyer",
+    "team": "Platform engineering",
+    "proposal": "Move merchant login OTP messages to a cheaper SMS provider to reduce per-message costs by 22%.",
+    "outcome": "rolled_back",
+    "reasons": [
+      "Acceptance tests covered Bengaluru and Mumbai but did not sample tier-2 carrier routes.",
+      "The cheaper provider's OTP delivery fell to 91% in tier-2 cities.",
+      "The provider could not restore the affected routes within the agreed recovery window; Kaveri Pay reverted after three weeks."
+    ],
+    "impact": "OTP delivery fell to 91% in tier-2 cities; login-related support tickets rose 34%; the switch was reverted after three weeks.",
+    "tags": ["illustrative", "vendor-switch", "otp", "tier-2-cities", "reliability", "rollback"]
+  },
+  {
+    "id": "kp-2023-project-lotus",
+    "title": "Project Lotus",
+    "date": "2023-08-07",
+    "owner": "Meera Srinivasan",
+    "team": "Pricing and growth",
+    "proposal": "In Q3 2023, remove Kaveri Pay's free merchant tier and require small merchants to migrate to a paid monthly plan.",
+    "outcome": "failed",
+    "reasons": [
+      "Support lacked migration capacity to help small merchants understand the paid plan and move their accounts.",
+      "A competitor ran a free-tier campaign in the same month as the migration.",
+      "The rollout removed the free tier without a staged migration path for low-volume merchants."
+    ],
+    "impact": "Merchant churn reached 31% in six weeks after the free tier was removed.",
+    "tags": ["illustrative", "pricing", "free-tier", "merchant-churn", "support-capacity", "competitor-timing", "migration"]
+  },
+  {
+    "id": "kp-2023-reconciliation",
+    "title": "Automated settlement reconciliation",
+    "date": "2023-11-24",
+    "owner": "Devika Menon",
+    "team": "Finance operations",
+    "proposal": "Automate daily settlement reconciliation using bank statement imports and a queue for unmatched transactions.",
+    "outcome": "partial",
+    "reasons": [
+      "Exact-reference matches removed repetitive spreadsheet work.",
+      "Two bank partners changed statement formats without notice.",
+      "The exception queue had no named owner on weekends, delaying investigation of unmatched settlements."
+    ],
+    "impact": "Automatic matching reached 88% and saved 23 staff-hours weekly; weekend exceptions still took a median 31 hours to resolve.",
+    "tags": ["illustrative", "reconciliation", "automation", "bank-partners", "exception-ownership"]
+  },
+  {
+    "id": "kp-2024-instant-settlement",
+    "title": "Instant Settlement",
+    "date": "2024-02-12",
+    "owner": "Arjun Nair",
+    "team": "Payments product",
+    "proposal": "Offer instant merchant settlement for eligible payment flows before completing a fraud-ops review.",
+    "outcome": "rolled_back",
+    "reasons": [
+      "The launch proceeded without a fraud-ops review.",
+      "Settlement eligibility relied on account age without transaction-velocity controls.",
+      "Fraud operations could not review suspicious bursts before funds were released."
+    ],
+    "impact": "Month-one chargebacks reached ₹38 lakh; the Instant Settlement launch was rolled back.",
+    "tags": ["illustrative", "settlement", "fraud-review", "chargebacks", "launch-gates", "rollback"]
+  },
+  {
+    "id": "kp-2024-qr-soundbox",
+    "title": "QR soundbox rollout",
+    "date": "2024-06-10",
+    "owner": "Kavya Deshpande",
+    "team": "Merchant hardware",
+    "proposal": "Pilot QR soundboxes with 400 merchants in Mysuru, the only pilot city, and expand to five further cities only after measurable reliability and support gates pass.",
+    "outcome": "success",
+    "reasons": [
+      "Expansion required payment-alert delivery of at least 99.5%, weekly active usage of at least 80%, and no more than 5 support tickets per 100 devices per week for four consecutive weeks.",
+      "The Mysuru pilot reached 99.7% alert delivery, 86% weekly active usage, and 3 tickets per 100 devices per week.",
+      "A local replacement partner and trained support agents were in place before each new city opened."
+    ],
+    "impact": "The rollout grew from 400 devices in Mysuru to 3,200 across six cities in five months; payment-confirmation disputes fell 28% among participating merchants.",
+    "tags": ["illustrative", "qr-soundbox", "phased-rollout", "pilot-city", "launch-gates", "support-capacity"]
+  },
+  {
+    "id": "kp-2024-paid-analytics-pilot",
+    "title": "Opt-in paid merchant analytics pilot",
+    "date": "2024-10-21",
+    "owner": "Nikhil Kulkarni",
+    "team": "Pricing and growth",
+    "proposal": "Test a paid analytics add-on with 300 established merchants while preserving their existing payment plan and offering a thirty-day trial.",
+    "outcome": "success",
+    "reasons": [
+      "Merchants opted in after seeing an example report using their own sales categories.",
+      "Support received a migration guide and reserved onboarding slots before invitations went out.",
+      "The pilot retained the existing payment plan and required trial cancellation to take no more than two clicks."
+    ],
+    "impact": "Of 300 invited merchants, 96 became paying analytics users after the trial; ninety-day retention of those subscribers was 91%.",
+    "tags": ["illustrative", "pricing", "opt-in", "merchant-analytics", "support-capacity", "phased-rollout"]
+  },
+  {
+    "id": "kp-2025-support-console",
+    "title": "Unified merchant support console",
+    "date": "2025-01-20",
+    "owner": "Sana Qureshi",
+    "team": "Customer support",
+    "proposal": "Bring payment status, merchant account history, and prior support conversations into a read-only support console for all 26 support agents.",
+    "outcome": "success",
+    "reasons": [
+      "Agents helped design the console around the three most common investigation tasks.",
+      "Read-only access and role-based masking limited accidental changes and unnecessary exposure of merchant data.",
+      "A two-week shadow rollout verified that displayed payment status matched the source systems."
+    ],
+    "impact": "Median ticket handling time fell from 11 to 7 minutes; repeat contacts within seven days fell from 19% to 12% over eight weeks.",
+    "tags": ["illustrative", "support-capacity", "internal-tools", "access-controls", "handoffs"]
+  },
+  {
+    "id": "kp-2025-fraud-blocks",
+    "title": "Automatic merchant holds for unusual transaction bursts",
+    "date": "2025-05-12",
+    "owner": "Pranav Bhat",
+    "team": "Risk and fraud operations",
+    "proposal": "Automatically place temporary settlement holds on merchant accounts with unusually high transaction velocity.",
+    "outcome": "partial",
+    "reasons": [
+      "The velocity rule caught repeated small-value transactions used in suspected abuse.",
+      "Thresholds were calibrated on weekday trading and incorrectly flagged legitimate festival stalls.",
+      "The appeals queue lacked a same-day service target during the first month."
+    ],
+    "impact": "Confirmed fraud losses fell 21% in the eight-week pilot, but 7% of held accounts were legitimate merchants and median appeal resolution was 19 hours.",
+    "tags": ["illustrative", "fraud-review", "false-positives", "settlement", "appeals", "seasonality"]
+  },
+  {
+    "id": "kp-2025-subscription-invoices",
+    "title": "Subscription invoicing for small merchants",
+    "date": "2025-09-15",
+    "owner": "Ishita Reddy",
+    "team": "Merchant tools",
+    "proposal": "Launch recurring invoice templates for all merchants after interviewing ten large tuition centres.",
+    "outcome": "failed",
+    "reasons": [
+      "Research covered larger tuition centres whose billing needs differed from neighbourhood shops.",
+      "The default monthly billing workflow did not fit merchants who collected irregular instalments.",
+      "The team shipped the full editor before testing whether merchants would send a second invoice."
+    ],
+    "impact": "Only 8% of 2,000 invited merchants sent an invoice, and 2% sent a second invoice within sixty days; planned expansion was cancelled.",
+    "tags": ["illustrative", "merchant-tools", "customer-research", "adoption", "pilot-design"]
+  },
+  {
+    "id": "kp-2026-regional-support",
+    "title": "Regional-language support scheduling",
+    "date": "2026-02-09",
+    "owner": "Lakshmi Narayan",
+    "team": "Customer support",
+    "proposal": "Pilot Kannada and Telugu support coverage during merchant peak hours, using ticket arrival data to set staffing rather than adding uniform all-day shifts.",
+    "outcome": "success",
+    "reasons": [
+      "Ticket analysis identified an evening peak that the existing shift pattern did not cover.",
+      "Bilingual agents reviewed translated help articles before the pilot.",
+      "Expansion required first response under ten minutes and no worsening of the English-language queue for six weeks."
+    ],
+    "impact": "Median first response in the pilot queues fell from 27 to 8 minutes; merchant satisfaction rose from 74% to 86% with two additional evening shifts.",
+    "tags": ["illustrative", "support-capacity", "localisation", "staffing", "phased-rollout"]
+  },
+  {
+    "id": "kp-2026-release-gates",
+    "title": "Payments release gates with staffed rollback ownership",
+    "date": "2026-07-13",
+    "owner": "Aditya Shah",
+    "team": "Platform engineering",
+    "proposal": "Require a named on-call owner, a tested rollback, and a 5% merchant canary before expanding changes to the payment routing service.",
+    "outcome": "success",
+    "reasons": [
+      "The canary gate stopped expansion if payment success dropped by more than 0.3 percentage points for ten minutes.",
+      "Support and payments operations received the rollout window before deployment.",
+      "Two canaries were rolled back within the pilot gate; neither reached the full merchant population."
+    ],
+    "impact": "Across 18 releases over twelve weeks, median rollback time fell from 26 to 7 minutes and customer-visible release incidents fell from 5 in the prior quarter to 1.",
+    "tags": ["illustrative", "release-process", "launch-gates", "rollback", "reliability", "phased-rollout"]
+  }
+]
