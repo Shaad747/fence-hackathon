@@ -1,6 +1,6 @@
 # Fence implementation progress
 
-Last updated 6 November 2026. This inventory follows the seven stages in the original **Build Fence for Hack with Hyderabad 3.0** brief. Stages 1–6 are implemented within the documented scope. Stage 7A resolves the Python 3.11 dependency blocker and audits integration; Stage 7B verified the live browser workflow. Stage 7C completes the local handoff and basic accessibility polish. Historical checkpoint results below are retained; the Stage 7A section supersedes earlier compatibility blockers.
+Last updated 6 November 2026. This inventory follows the seven stages in the original **Build Fence for Hack with Bengaluru** brief. Stages 1–6 are implemented within the documented scope. Stage 7A resolves the Python 3.11 dependency blocker and audits integration; Stage 7B verified the live browser workflow. Stage 7C completes the local handoff and basic accessibility polish. Historical checkpoint results below are retained; the Stage 7A section supersedes earlier compatibility blockers.
 
 The Git repository has no commits or staged files. The project files are untracked. The local `.env` is ignored and absent from the Git index, as verified with `git check-ignore` and `git ls-files`. `load_settings()` loaded both credentials. The virtual environment, Python bytecode, and pytest cache are also ignored.
 

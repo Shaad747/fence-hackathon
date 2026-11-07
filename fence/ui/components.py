@@ -23,8 +23,8 @@ def html(markup: str) -> None:
 
 
 def navigation() -> None:
-    links = [("Problem", "problem"), ("Archive", "archive"), ("Check", "check"),
-             ("Learning", "learning"), ("Patterns", "patterns"), ("How it works", "how-it-works")]
+    links = [("Check", "check"), ("Archive", "archive"), ("Learning", "learning"),
+             ("Patterns", "patterns"), ("Problem", "problem"), ("How it works", "how-it-works")]
     html('<header class="fence-nav"><div class="fence-nav-inner">'
          f'<a class="fence-brand" href="#check" aria-label="Fence, go to proposal">{_LOGO}Fence<span>.</span></a>'
          '<nav aria-label="Main navigation">'
@@ -43,41 +43,33 @@ def _lotus_metric(lotus: Decision) -> str:
 
 def _archive_preview(lotus: Decision) -> None:
     html(f'''<figure class="fence-preview" aria-label="Illustrative archive excerpt">
-<div class="fence-preview-head"><span class="fence-archive-icon" aria-hidden="true">{_LOGO}</span><span>Archive excerpt</span><span class="fence-preview-date">{lotus.date:%b %Y}</span></div>
-<figcaption><span class="fence-meta">Kaveri Pay · Illustrative</span><h2>{escape(lotus.title)}</h2></figcaption>
+<figcaption><h2>{escape(lotus.title)}</h2><p class="fence-meta">Illustrative archive excerpt from Kaveri Pay, {lotus.date:%b %Y}</p></figcaption>
 <p class="fence-preview-outcome">{escape(_lotus_metric(lotus))} <span>churn in six weeks</span></p>
 <p class="fence-preview-reason">{escape(lotus.reasons[0])}</p>
-<a href="#archive">Explore the archive <span aria-hidden="true">↗</span></a>
+<a href="#archive">Explore the archive</a>
 </figure>''')
 
 
 def hero(lotus: Decision | None):
-    request = None
     with st.container(key="fence-hero"):
-        html('<span class="fence-anchor" id="check" tabindex="-1"></span>')
-        copy, preview = st.columns([1.35, 1], gap="large", vertical_alignment="center")
+        html('''<div class="fence-hero-copy"><span class="fence-anchor" id="check" tabindex="-1"></span>
+<h1>Check a proposal</h1>
+<p class="fence-intro">Compare independent advice with a review grounded in past decisions.</p></div>''')
+        copy, preview = st.columns([2, 1], gap="medium") if lotus else (st.container(), None)
         with copy:
-            html('''<div class="fence-hero-copy"><p class="fence-kicker"><span aria-hidden="true"></span> Decision review workspace</p>
-<h1>Before you decide, ask what you’ve already tried.</h1>
-<p class="fence-intro">Every proposal has a history. Find the decisions that came before, and start your next move with what your team learned.</p></div>''')
             with st.container(key="fence-proposal-panel"):
                 proposal = st.text_area("What are you about to decide?", key="proposal", height=108,
                                         placeholder="Describe a launch, pricing change, vendor switch, or process change…")
-                sample, check = st.columns(2, gap="small")
-                sample.button("Use a sample proposal", on_click=_use_sample, width="stretch", key="sample_proposal")
-                submitted = check.button("Check this proposal", type="primary", width="stretch", key="check_proposal")
-                st.caption("Live review · Sends your proposal to Groq and searches the configured Hindsight archive only when you check.")
-                status = st.empty()
-                if submitted:
-                    if len(proposal.strip()) < 20:
-                        st.error("Describe the decision in at least 20 characters, or try the sample proposal.")
-                    else:
-                        request = proposal.strip()
+                with st.container(horizontal=True, gap="small", key="fence-proposal-actions"):
+                    submitted = st.button("Check this proposal", type="primary", key="check_proposal")
+                    st.button("Use a sample proposal", on_click=_use_sample, key="sample_proposal")
+                st.caption("Live review sends your proposal to Groq and searches the configured Hindsight archive only when you check.")
+                status = st.container(key="fence-proposal-status")
         if lotus:
             with preview:
                 _archive_preview(lotus)
 
-    return request, status
+    return proposal.strip() if submitted else None, status
 
 
 def problem(lotus: Decision | None) -> None:
@@ -100,9 +92,10 @@ def problem(lotus: Decision | None) -> None:
 def decision_details(decision: Decision) -> str:
     reasons = "".join(f"<li>{escape(reason)}</li>" for reason in decision.reasons)
     tags = "".join(f'<li class="fence-chip">{escape(tag)}</li>' for tag in decision.tags)
-    return f'''<div class="fence-decision-detail"><dl><dt>Owner</dt><dd>{escape(decision.owner)} · {escape(decision.team)}</dd>
-<dt>Proposal</dt><dd>{escape(decision.proposal)}</dd><dt>Impact</dt><dd>{escape(decision.impact)}</dd>
-<dt>What shaped the outcome</dt><dd><ul>{reasons}</ul></dd></dl><ul class="fence-chips" aria-label="Tags">{tags}</ul></div>'''
+    return f'''<div class="fence-decision-detail"><dl><dt>Recorded impact</dt><dd>{escape(decision.impact)}</dd>
+<dt>What shaped the outcome</dt><dd><ul>{reasons}</ul></dd><dt>Proposal</dt><dd>{escape(decision.proposal)}</dd>
+<dt>Owner and team</dt><dd>{escape(decision.owner)}, {escape(decision.team)}</dd></dl>
+<ul class="fence-chips" aria-label="Tags">{tags}</ul></div>'''
 
 
 def _reset_filters() -> None:
@@ -116,10 +109,11 @@ def archive_timeline(decisions: list[Decision]) -> None:
                "year": sorted({item.date.year for item in decisions}, reverse=True),
                "tag": sorted({tag for item in decisions for tag in item.tags})}
     filters = {}
-    for (key, placeholder), column in zip(FILTERS.items(), st.columns(4, gap="small")):
-        filters[key] = column.selectbox(key.capitalize(), options[key], index=None, placeholder=placeholder,
-                                        format_func=lambda value: OUTCOMES.get(value, str(value)),
-                                        key=f"archive_{key}")
+    with st.container(key="fence-archive-filters"):
+        for (key, placeholder), column in zip(FILTERS.items(), st.columns(4, gap="small")):
+            filters[key] = column.selectbox(key.capitalize(), options[key], index=None, placeholder=placeholder,
+                                            format_func=lambda value: OUTCOMES.get(value, str(value)),
+                                            key=f"archive_{key}")
     visible = [item for item in decisions if
                (filters["outcome"] is None or item.outcome == filters["outcome"])
                and (filters["team"] is None or item.team == filters["team"])
@@ -134,7 +128,7 @@ def archive_timeline(decisions: list[Decision]) -> None:
     with st.container(key="fence-timeline"):
         for item in sorted(visible, key=lambda item: (item.id != LOTUS_ID, -item.date.toordinal())):
             title = re.sub(r"([\\`*_\[\]<>])", r"\\\1", item.title)
-            label = f"**{title}** · {item.date:%b %d, %Y} · :{OUTCOME_MARKDOWN[item.outcome]}[{OUTCOMES[item.outcome]}]"
+            label = f"**{title}** {item.date:%b %d, %Y} / :{OUTCOME_MARKDOWN[item.outcome]}[{OUTCOMES[item.outcome]}]"
             with st.container(key=f"archive-{item.outcome}-{item.id}"):
                 with st.expander(label):
                     html(decision_details(item))
@@ -144,7 +138,7 @@ def archive(decisions: list[Decision] | None) -> None:
     with st.container(key="fence-archive"):
         html('''<span class="fence-anchor" id="archive" tabindex="-1"></span><h2 class="fence-section-title">Decision archive</h2>
 <p class="fence-section-lede">Explore the decisions that shaped Kaveri Pay.</p>
-<p class="fence-meta">Illustrative archive · Fictional company and outcomes</p>''')
+<p class="fence-meta">Illustrative archive. Kaveri Pay and its outcomes are fictional.</p>''')
         if decisions is None:
             st.error("The local decision archive could not be loaded. Check seed/seed_data.json and reload the page.")
         else:
@@ -160,4 +154,4 @@ def how_it_works() -> None:
 <li><strong>Reflect</strong><p>Look across outcomes for lessons worth keeping.</p></li></ol>
 <div class="fence-planned"><section><h3>Feedback and learning</h3><p><a href="#learning">Review confirmed votes and outcome activity.</a></p></section>
 <section><h3>Reflection and patterns</h3><p><a href="#patterns">Explore grounded reflection and its sources.</a></p></section></div>
-<footer class="fence-footer"><span>Fence · Hack with Hyderabad 3.0</span><a href="#check">Back to proposal ↑</a></footer></section>''')
+<footer class="fence-footer"><span>Fence · Hack with Bengaluru</span><a href="#check">Back to proposal ↑</a></footer></section>''')

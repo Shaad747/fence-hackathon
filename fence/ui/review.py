@@ -9,7 +9,7 @@ from core.config import ConfigurationError, load_settings
 from core.llm import LLMServiceError
 from core.memory import MemoryServiceError
 from core.review_service import ReviewRun, ReviewService
-from ui.components import html
+from ui.components import OUTCOMES, html
 
 
 @st.cache_resource(show_spinner=False, scope="session", on_release=lambda service: service.close())
@@ -32,9 +32,11 @@ def _checks(checks: list[str]) -> None:
 def _baseline(run: ReviewRun) -> None:
     with st.container(key="fence-baseline"):
         st.subheader("Without memory")
-        st.caption("Independent answer · Receives only your proposal")
+        st.caption("Independent answer based only on your proposal.")
         if run.result.baseline:
+            html('<h4>Recommendation</h4>')
             _text(run.result.baseline.summary)
+            html('<p class="fence-risk-line">Risk: No assessment in the independent answer.</p>')
             _checks(run.result.baseline.checks_before_proceeding)
         else:
             st.error("The independent answer is unavailable. Review the error below and retry when ready.")
@@ -55,24 +57,32 @@ def _grounded(run: ReviewRun) -> None:
         if not verified_citations(run):
             st.error("This report contains unsupported citations and cannot be displayed. Retry the check.")
             return
+        html('<h4>Recommendation</h4>')
         if result.report_status != "grounded":
             (st.info if result.report_status == "no_relevant_history" else st.warning)(report.summary)
             st.caption("No grounded risk assessment is available. These are general checks.")
         else:
-            html(f'<span class="fence-risk fence-risk-{report.risk_level}">{report.risk_level.capitalize()} risk</span>')
             _text(report.summary)
-            st.caption(f"Evidence confidence: {report.confidence:.0%} · Heuristic, not a probability of success")
+            html(f'<p class="fence-risk-line"><span class="fence-risk fence-risk-{report.risk_level}">'
+                 f'{report.risk_level.capitalize()} risk</span> '
+                 f'<span>Evidence confidence: {report.confidence:.0%}. Heuristic, not a probability of success.</span></p>')
             if report.mixed_evidence:
                 st.warning("Past decisions had conflicting outcomes. Compare their rollout conditions.")
-            for decision in report.similar_decisions:
-                html(f'<h4>{escape(decision.decision_title)}</h4>')
-                st.caption(str(decision.decision_date or "Date unavailable"))
-                _text(decision.similarity_reason)
-                _text(decision.what_happened)
-                _text(decision.why_it_matters)
-                for mid in decision.memory_ids:
-                    html(f'<a class="fence-citation" href="#{_anchor(mid)}">Cited evidence: {escape(mid)}</a>')
         _checks(report.checks_before_proceeding)
+        if result.report_status == "grounded" and report.similar_decisions:
+            html('<h4>Historical evidence</h4>')
+            for decision in report.similar_decisions:
+                title = escape(decision.decision_title)
+                links = []
+                for index, mid in enumerate(decision.memory_ids, 1):
+                    label = f"{title} ({index})" if len(decision.memory_ids) > 1 else title
+                    links.append(f'<li><a class="fence-citation" href="#{_anchor(mid)}">Cited evidence: {label}</a></li>')
+                html(f'''<div class="fence-precedent">
+<ul>{''.join(links)}</ul>
+<p class="fence-meta">{escape(str(decision.decision_date or "Date unavailable"))}</p>
+<p>{escape(decision.what_happened)}</p>
+<p>{escape(decision.similarity_reason)} {escape(decision.why_it_matters)}</p>
+</div>''')
 
 
 def memory_panel(run: ReviewRun) -> None:
@@ -91,26 +101,37 @@ def memory_panel(run: ReviewRun) -> None:
                 st.info("The configured bank contains no retained decisions. Run the seed command before the demo.")
             for document in run.documents:
                 _text(f"{document.document_id} · {document.memory_unit_count} extracted facts")
-    st.caption(f"{len(result.evidence)} distinct recalled facts · No new decisions retained by this check")
+    st.caption(f"{len(result.evidence)} distinct recalled facts. This check retained no new decisions.")
     if not result.evidence:
         st.info("No evidence returned." if result.retrieval_status == "complete" else "Retrieval did not return usable evidence; this does not confirm an empty archive.")
     cited = set(result.citation_ids) if verified_citations(run) else set()
+    if result.evidence:
+        html('<h3 class="fence-case-heading">Evidence case files</h3>')
     for item in result.evidence:
         memory = item.memory
-        css = 'fence-evidence cited' if memory.memory_id in cited else 'fence-evidence'
-        html(f'<div id="{_anchor(memory.memory_id)}" class="fence-anchor" tabindex="-1"></div>')
-        with st.container(border=True):
-            html(f'<div class="{css}"><strong>{escape(memory.title)}</strong>'
-                 f'<span>{"Cited" if memory.memory_id in cited else "Recalled"} · {memory.date or "Date unavailable"}</span></div>')
-            _text(f"Evidence ID: {memory.memory_id}")
-            _text(f"Source: {memory.document_id or 'Unresolved'}")
-            st.progress(item.ranking_signal, text=f"Relative ranking signal · {item.ranking_signal:.0%}")
+        anchor = _anchor(memory.memory_id)
+        outcome = None if item.provenance_conflict else item.outcome
+        outcome_label = "Recorded outcome: " + OUTCOMES[outcome] if outcome else "Recorded outcome unavailable"
+        status = "Cited" if memory.memory_id in cited else "Recalled, not cited"
+        with st.container(key=f"fence-case-{anchor}"):
+            html(f'''<article id="{anchor}" class="fence-case" tabindex="-1">
+<h4>{escape(memory.title)}</h4>
+<p class="fence-case-meta"><span>{escape(str(memory.date or "Date unavailable"))}</span>
+<span>{outcome_label}</span>
+<span class="fence-case-status">{status}</span></p>
+<p>{escape(item.what_happened)}</p>
+</article>''')
             if not item.eligible:
                 st.caption("Excluded from recommendation candidates: relevance or provenance requirements were not met.")
-            _text(memory.evidence_text)
-            if memory.source_text:
-                with st.expander("Source excerpt" + (" · truncated" if memory.source_truncated else "")):
-                    _text(memory.source_text)
+            with st.expander(f"Source details for {memory.title}"):
+                _text(f"Evidence ID: {memory.memory_id}")
+                _text(f"Source: {memory.document_id or 'Unresolved'}")
+                st.progress(item.ranking_signal, text=f"Relative ranking signal: {item.ranking_signal:.0%}")
+                html('<p><strong>Recalled fact</strong></p>')
+                _text(memory.evidence_text)
+                if memory.source_text:
+                    html(f'<p><strong>{"Source excerpt (truncated)" if memory.source_truncated else "Source excerpt"}</strong></p>'
+                         f'<p class="fence-source-excerpt">{escape(memory.source_text)}</p>')
     with st.expander("Request activity and search queries"):
         for query in result.recall_queries:
             _text(query)
@@ -120,49 +141,57 @@ def memory_panel(run: ReviewRun) -> None:
 
 def comparison(run: ReviewRun) -> None:
     html('<span class="fence-anchor" id="fence-report" tabindex="-1"></span>')
-    st.subheader("Fence Report", anchor="fence-report-heading")
-    _text("Reviewed proposal: " + run.result.proposal.original_input)
+    with st.container(key="fence-report-summary"):
+        st.subheader("Fence Report", anchor="fence-report-heading")
+        html(f'<p class="fence-reviewed-proposal"><strong>Reviewed proposal</strong> {escape(run.result.proposal.original_input)}</p>')
+        st.caption(f"Pipeline completed in {run.result.elapsed_seconds:.2f}s. Results stay fixed until you explicitly run another check.")
     if run.result.proposal.input_truncated:
         st.warning("Only the first 3,000 characters were reviewed in both answers.")
-    st.caption(f"Pipeline completed in {run.result.elapsed_seconds:.2f}s · Results stay fixed until you explicitly run another check.")
-    view = st.radio("Comparison view", ["Side by side", "With memory", "Without memory"], horizontal=True, key="comparison_view")
-    if view == "Side by side":
-        left, right = st.columns(2, gap="medium")
-        with left:
-            _baseline(run)
-        with right:
+    with st.container(key="fence-readings"):
+        view = st.radio("Comparison view", ["Side by side", "With memory", "Without memory"], horizontal=True, key="comparison_view")
+        if view == "Side by side":
+            left, right = st.columns([2, 3], gap="medium")
+            with left:
+                _baseline(run)
+            with right:
+                _grounded(run)
+        elif view == "With memory":
             _grounded(run)
-    elif view == "With memory":
-        _grounded(run)
-    else:
-        _baseline(run)
+        else:
+            _baseline(run)
     for issue in run.result.issues:
         st.warning(f"{issue.stage.capitalize()}: {issue.error.message} {issue.error.next_step}")
     memory_panel(run)
 
 
-def review_workspace(request: str | None, status=None) -> None:
+def review_workspace(request: str | None, status) -> None:
     previous = st.session_state.get("review_run")
+    notice = status.empty()
+    invalid_draft = request is not None and len(request) < 20
+    if invalid_draft:
+        request = None
     retry = False
-    if (st.session_state.get("review_attempt") or request) and st.button("Retry last check", key="retry_review"):
+    if (st.session_state.get("review_attempt") or request) and status.button("Retry last check", key="retry_review"):
         request = st.session_state["review_attempt"]
         retry = True
+    reused = False
     if request is not None:
         if not retry and request == st.session_state.get("review_attempt") and previous and not previous.result.issues and not previous.snapshot_error and request == st.session_state.get("completed_request"):
-            st.info("Showing the saved check. Use Retry last check to explicitly request a fresh answer.")
+            reused = True
         else:
-            _execute(request, status)
-    if st.session_state.get("review_error"):
-        st.error(st.session_state["review_error"])
+            _execute(request, notice)
     run = st.session_state.get("review_run")
-    if status is not None:
-        if st.session_state.get("review_error"):
-            status.error(st.session_state["review_error"])
-        elif run and st.session_state.get("proposal", "").strip() == st.session_state.get("completed_request"):
-            if run.result.issues or run.result.report_status != "grounded":
-                status.warning("Check finished with limitations. [View the report and errors](#fence-report).")
-            else:
-                status.success("Review complete. [View your comparison and citations](#fence-report).")
+    if invalid_draft:
+        notice.error("Describe the decision in at least 20 characters, or try the sample proposal.")
+    elif st.session_state.get("review_error"):
+        notice.error(st.session_state["review_error"])
+    elif reused:
+        notice.info("Showing the saved check. [View your comparison and citations](#fence-report).")
+    elif run and st.session_state.get("proposal", "").strip() == st.session_state.get("completed_request"):
+        if run.result.issues or run.result.report_status != "grounded":
+            notice.warning("Check finished with limitations. [View the report and errors](#fence-report).")
+        else:
+            notice.success("Review complete. [View your comparison and citations](#fence-report).")
     if run:
         if st.session_state.get("proposal", "").strip() != st.session_state.get("completed_request", run.result.proposal.original_input):
             st.info("The editor differs from this report. Check the edited proposal to update both answers.")
@@ -171,14 +200,12 @@ def review_workspace(request: str | None, status=None) -> None:
         comparison(run)
 
 
-def _execute(request: str, status=None) -> None:
+def _execute(request: str, notice) -> None:
     st.session_state["review_attempt"] = request
     st.session_state.pop("review_error", None)
-    loading = status if status is not None else st.empty()
-    loading.markdown('<div class="fence-loading" role="status" aria-live="polite">Analyzing your proposal and searching the live decision archive…<div></div><div></div></div>', unsafe_allow_html=True)
+    notice.markdown('<p class="fence-loading" role="status">Analyzing your proposal and searching the decision archive…</p>', unsafe_allow_html=True)
     try:
-        with st.spinner("Preparing independent and memory-backed answers…"):
-            run = get_review_service().review(request)
+        run = get_review_service().review(request)
         st.session_state["review_run"] = run
         st.session_state["completed_request"] = request
     except ConfigurationError as exc:
@@ -189,4 +216,4 @@ def _execute(request: str, status=None) -> None:
         # Provider exception bodies can contain credentials; never render or log them.
         st.session_state["review_error"] = "The check could not finish. Check the service configuration and retry. Your previous report is preserved."
     finally:
-        loading.empty()
+        notice.empty()

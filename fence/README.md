@@ -2,7 +2,7 @@
 
 Before you decide, ask what you have already tried.
 
-Fence is an institutional-memory decision reviewer for Hack with Bengaluru 3.0. The proposal pipeline compares generic advice with advice grounded in earlier decisions using Hindsight and Groq. The Streamlit app submits real proposal reviews, compares independent and memory-backed answers, and displays the retrieved evidence alongside the illustrative decision archive.
+Fence is an institutional-memory decision reviewer for Hack with Bengaluru. The proposal pipeline compares generic advice with advice grounded in earlier decisions using Hindsight and Groq. The Streamlit app submits real proposal reviews, compares independent and memory-backed answers, and displays the retrieved evidence alongside the illustrative decision archive.
 
 Kaveri Pay is a **fictional** Bengaluru fintech with roughly 220 employees. Every archive decision, person, and business metric here is synthetic. The seed is illustrative history, not live feedback or evidence of real customer results.
 
